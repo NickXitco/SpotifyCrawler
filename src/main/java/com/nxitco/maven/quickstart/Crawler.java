@@ -23,7 +23,7 @@ import com.wrapper.spotify.models.ClientCredentials;
  */
 public class Crawler 
 {
-	public static final int DATABASE_SIZE = 5;
+	public static final int DATABASE_SIZE = 5000;
 	public static final String clientId = "5b00769425ca43019b6072c9fe842472";
 	public static final String clientSecret = "cc91b1e3ee824e0a8e94d64b5c5201b3";
 	private static final String DEFAULT_ID = "6eUKZXaKkcviH0Ku9w2n3V";
@@ -59,7 +59,7 @@ public class Crawler
 		/*
 		 * Inject artists here (but you probably shouldn't
 		 * cause they'd be disconnected which will give you all
-		 * sorts of problems later on.
+		 * sorts of problems later on).
 		 * 
 		 * idQueue.add(injectedArtist);
 		 * 
@@ -106,11 +106,11 @@ public class Crawler
 				    writer.startNewLine();		    
 				} catch (Exception e) {
 					writer.errorMessage();
+					writer.flushWriter();
 					if (e.getMessage().equals("429")) {
 						System.err.println("Too many requests! " + e.getMessage());
-						System.err.println(e.getCause());
-						System.err.println("Sleeping for 60 seconds.");
-						Thread.sleep(60000);
+						System.err.println("Sleeping for 5 minutes.");
+						Thread.sleep(300000);
 						System.err.println("Resuming...");
 					} else if (e.getMessage().equals("401")) {
 						System.err.println("Access Token Expired! " + e.getMessage());
