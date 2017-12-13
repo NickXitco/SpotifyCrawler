@@ -35,7 +35,6 @@ public class Crawler
 	public static final String DATABASE_WRITE_NAME = "newDB.txt";
 	public static final String DATABASE_READ_NAME = "newDB.txt";
 	
-	@SuppressWarnings("deprecation")
 	public static void main( String[] args ) throws IOException, WebApiException, InterruptedException
 	{
 		final Api api = Api.builder()
@@ -45,21 +44,30 @@ public class Crawler
 		
 		Writer writer = new Writer(DATABASE_WRITE_NAME);
 		Reader reader = new Reader(DATABASE_READ_NAME);
-		Map<String, String> idMap = new HashMap<String, String>();
-		Queue<String> idQueue = new LinkedList<String>();
+		
+		Map<String, Artist> artistMap = new HashMap<String, Artist>();
+		Queue<Artist> artistQueue = new LinkedList<Artist>();
+		
+		Artist currentArtist;
+		String currentName;
 		String currentID;
-		String currentArtist;
+		int currentFollowers;
+		List<String> currentGenres;
+		
 		int i = 0;
 		
+		/*
 		reader.readin();
 		reader.addDiscoveredArtists();
-		idMap = reader.idMap;
-		idQueue = reader.idQueue;
+		artistMap = reader.idMap;
+		artistQueue = reader.idQueue;
+		*/
 		
-		
-		if (idMap.isEmpty()) {
-			idMap.put(DEFAULT_ID, DEFAULT_NAME);
-			idQueue.add(DEFAULT_ID);
+		if (artistMap.isEmpty()) {
+	        getAccessToken(api);
+	        final ArtistRequest request = api.getArtist(id)
+		    artistMap.put(DEFAULT_ID, DEFAULT_NAME);
+		    artistQueue.add(DEFAULT_ID);
 		}
 		
 		/*
@@ -71,29 +79,17 @@ public class Crawler
 		 * 
 		 */
 		
+		
+		
 		if (reader.go == false) {
 			System.out.println("Error in readin");
 			return;
 		}
-		System.out.println("Starting crawler...");
 		
+		System.out.println("Starting crawler...");
 		while (i <= DATABASE_SIZE) {
-			System.err.println("Requesting new access token...");
-			ClientCredentialsGrantRequest credRequest = api.clientCredentialsGrant().build();
-	
-			SettableFuture<ClientCredentials> responseFuture = credRequest.getAsync();
-			
-			Futures.addCallback(responseFuture, new FutureCallback<ClientCredentials>() {
-			  public void onSuccess(ClientCredentials clientCredentials) {	
-			    api.setAccessToken(clientCredentials.getAccessToken());
-				System.err.println("Access token granted!");
-			  }
-			  public void onFailure(Throwable throwable) {
-				  System.err.println("Access token denied.");
-			  }
-			});
-
-			while (i <= DATABASE_SIZE) {
+			getAccessToken(api);
+		    while (i <= DATABASE_SIZE) {
 				
 				if ((currentID = idQueue.poll()) == null) {
 					System.out.println("Queue Empty.");
@@ -142,4 +138,22 @@ public class Crawler
 		writer.closeWriter();
 		reader.closeReader();
     }	
+	
+	@SuppressWarnings("deprecation")
+	private static void getAccessToken(final Api api) {
+        System.err.println("Requesting new access token...");
+        ClientCredentialsGrantRequest credRequest = api.clientCredentialsGrant().build();
+
+        SettableFuture<ClientCredentials> responseFuture = credRequest.getAsync();
+        
+        Futures.addCallback(responseFuture, new FutureCallback<ClientCredentials>() {
+          public void onSuccess(ClientCredentials clientCredentials) {  
+            api.setAccessToken(clientCredentials.getAccessToken());
+            System.err.println("Access token granted!");
+          }
+          public void onFailure(Throwable throwable) {
+              System.err.println("Access token denied.");
+          }
+        });
+	}
 }
