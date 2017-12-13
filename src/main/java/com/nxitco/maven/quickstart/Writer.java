@@ -5,6 +5,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.List;
+
+import com.wrapper.spotify.models.Artist;
 
 public class Writer {
 	BufferedWriter dbWriter;
@@ -18,12 +21,12 @@ public class Writer {
 		}
 	}
 	
-	public void writeHeadArtist(String name, String id) throws IOException {
-		this.dbWriter.write(stringPrep(name, id));
+	public void writeHeadArtist(Artist artist) throws IOException {
+		this.dbWriter.write(stringPrep(artist));
 	}
 	
-	public void writeChildArtist(String name, String id) throws IOException {
-		this.dbWriter.append("|" + stringPrep(name, id));
+	public void writeChildArtist(Artist artist) throws IOException {
+		this.dbWriter.append("|" + stringPrep(artist));
 	}
 	
 	public void startNewLine() throws IOException {
@@ -42,17 +45,32 @@ public class Writer {
 		this.dbWriter.append("//POSSIBLE ERROR//");
 	}
 	
-	public String stringPrep(String name, String id) {
-		if (name.contains("&")) {
+	public String stringPrep(Artist artist) {
+		String name = artist.getName();
+		String id = artist.getId();
+		int followers = artist.getFollowers().getTotal();
+		String genres = genreListStringFix(artist.getGenres());
+	    
+	    if (name.contains("&")) {
 			name =  unescapeHtml3(name);
 		}
+	    
 		if (name.contains("|")) {
 			name = name.replace("|", "/");
 		}
-		return name + "|" + id;
+		
+		return name + "|" + id + "|" + followers + "|" + genres;
 	}
 	
-	//Thank you to Nick Frolov from StackOverflow for this code.
+	private String genreListStringFix(List<String> genres) {
+	    if (genres.isEmpty() || genres == null) {
+	        return "n/a";
+	    }
+	    //Returns a substring without the 1st and last characters (brackets)
+	    return genres.toString().substring(1, genres.toString().length() - 1);
+    }
+
+    //Thank you to Nick Frolov from StackOverflow for this code.
 	public final String unescapeHtml3(final String input) {
         StringWriter writer = null;
         int len = input.length();
@@ -246,7 +264,5 @@ public class Writer {
         lookupMap = new HashMap<String, CharSequence>();
         for (final CharSequence[] seq : ESCAPES) 
             lookupMap.put(seq[1].toString(), seq[0]);
-    }
-	
-	
+    }	
 }
