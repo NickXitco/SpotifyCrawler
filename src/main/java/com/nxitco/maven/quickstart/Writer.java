@@ -7,41 +7,39 @@ import java.io.StringWriter;
 import java.util.HashMap;
 
 public class Writer {
-	public static final String WRITE_NAME = "apiDB.txt";
 	BufferedWriter dbWriter;
 	String line;
 	
-	public Writer() {
+	public Writer(String fileName) {
 		try {
-			dbWriter = new BufferedWriter(new FileWriter(WRITE_NAME, true));
+			this.dbWriter = new BufferedWriter(new FileWriter(fileName, true));
 		} catch (IOException e) {
-			System.out.println("what");
 			e.printStackTrace();
 		}
 	}
 	
 	public void writeHeadArtist(String name, String id) throws IOException {
-		dbWriter.write(stringPrep(name, id));
+		this.dbWriter.write(stringPrep(name, id));
 	}
 	
 	public void writeChildArtist(String name, String id) throws IOException {
-		dbWriter.append("|" + stringPrep(name, id));
+		this.dbWriter.append("|" + stringPrep(name, id));
 	}
 	
 	public void startNewLine() throws IOException {
-		dbWriter.append("\n");
+		this.dbWriter.append("\n");
 	}
 	
 	public void flushWriter() throws IOException {
-		dbWriter.flush();
+		this.dbWriter.flush();
 	}
 	
 	public void closeWriter() throws IOException {
-		dbWriter.close();
+		this.dbWriter.close();
 	}
 	
 	public void errorMessage() throws IOException {
-		dbWriter.append("//POSSIBLE ERROR//");
+		this.dbWriter.append("//POSSIBLE ERROR//");
 	}
 	
 	public String stringPrep(String name, String id) {

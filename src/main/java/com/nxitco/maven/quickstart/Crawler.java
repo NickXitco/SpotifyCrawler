@@ -6,12 +6,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
 import com.wrapper.spotify.Api;
 import com.wrapper.spotify.exceptions.WebApiException;
+import com.wrapper.spotify.methods.ArtistRequest;
 import com.wrapper.spotify.methods.RelatedArtistsRequest;
 import com.wrapper.spotify.methods.authentication.ClientCredentialsGrantRequest;
 import com.wrapper.spotify.models.Artist;
@@ -23,11 +25,15 @@ import com.wrapper.spotify.models.ClientCredentials;
  */
 public class Crawler 
 {
-	public static final int DATABASE_SIZE = 50000;
+	public static final int DATABASE_SIZE = 0;
 	public static final String clientId = "5b00769425ca43019b6072c9fe842472";
 	public static final String clientSecret = "cc91b1e3ee824e0a8e94d64b5c5201b3";
 	private static final String DEFAULT_ID = "6eUKZXaKkcviH0Ku9w2n3V";
 	private static final String DEFAULT_NAME = "Ed Sheeran";
+	private static final int DEFAULT_FOLLOWERS = 14789639; //As of 12/13/17
+	
+	public static final String DATABASE_WRITE_NAME = "newDB.txt";
+	public static final String DATABASE_READ_NAME = "newDB.txt";
 	
 	@SuppressWarnings("deprecation")
 	public static void main( String[] args ) throws IOException, WebApiException, InterruptedException
@@ -37,8 +43,8 @@ public class Crawler
 		  .clientSecret(clientSecret)
 		  .build();
 		
-		Writer writer = new Writer();
-		Reader reader = new Reader();
+		Writer writer = new Writer(DATABASE_WRITE_NAME);
+		Reader reader = new Reader(DATABASE_READ_NAME);
 		Map<String, String> idMap = new HashMap<String, String>();
 		Queue<String> idQueue = new LinkedList<String>();
 		String currentID;
@@ -47,9 +53,9 @@ public class Crawler
 		
 		reader.readin();
 		reader.addDiscoveredArtists();
-		reader.closeReader();
 		idMap = reader.idMap;
 		idQueue = reader.idQueue;
+		
 		
 		if (idMap.isEmpty()) {
 			idMap.put(DEFAULT_ID, DEFAULT_NAME);
@@ -70,6 +76,7 @@ public class Crawler
 			return;
 		}
 		System.out.println("Starting crawler...");
+		
 		while (i <= DATABASE_SIZE) {
 			System.err.println("Requesting new access token...");
 			ClientCredentialsGrantRequest credRequest = api.clientCredentialsGrant().build();
@@ -99,6 +106,7 @@ public class Crawler
 					final List<Artist> artists = request.get();
 				    for (Artist artist : artists) {
 				    	if (idMap.put(artist.getId(), artist.getName()) == null) {
+				    		System.out.println(artist.getName() + " (" + artist.getFollowers().getTotal() + ")");
 				    		idQueue.add(artist.getId());
 				    	}
 			    		writer.writeChildArtist(artist.getName(), artist.getId());
@@ -132,7 +140,6 @@ public class Crawler
 		}
 		System.out.println("Finished proccess.");
 		writer.closeWriter();
-    }
-	
-	
+		reader.closeReader();
+    }	
 }

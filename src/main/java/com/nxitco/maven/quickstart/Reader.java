@@ -11,18 +11,19 @@ import java.util.Map;
 import java.util.Queue;
 
 public class Reader {
-	public static final String READ_NAME = "apiDB.txt";
 	BufferedReader dbReader;
 	Map<String, String> idMap;
 	Queue<String> idQueue;
+	String databaseName;
 	boolean go = true;
 	String line;
 	
-	public Reader() {
+	public Reader(String databaseReadName) {
 		try {
 			this.dbReader = new BufferedReader(
 					new FileReader(
-							new File(READ_NAME)));
+							new File(databaseReadName)));
+			this.databaseName = databaseReadName;
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -50,7 +51,7 @@ public class Reader {
 	public void resetFile() throws IOException {
 		this.dbReader = new BufferedReader(
 				new FileReader(
-						new File(READ_NAME)));
+						new File(this.databaseName)));
 	}
 	
 	public Queue<String> addDiscoveredArtists() throws IOException  {
