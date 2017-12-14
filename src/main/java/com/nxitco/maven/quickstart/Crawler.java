@@ -25,13 +25,15 @@ import com.wrapper.spotify.models.ClientCredentials;
  */
 public class Crawler 
 {
-	public static final int LINES_TO_ADD = 2000;
+	public static final int LINES_TO_ADD = 5000;
 	public static final String clientId = "5b00769425ca43019b6072c9fe842472";
 	public static final String clientSecret = "cc91b1e3ee824e0a8e94d64b5c5201b3";
 	private static final String DEFAULT_ID = "6eUKZXaKkcviH0Ku9w2n3V"; //Ed Sheeran
 	
 	public static final String DATABASE_WRITE_NAME = "artistDB.txt";
 	public static final String DATABASE_READ_NAME = "artistDB.txt";
+	
+	public static final int SLEEP_DELAY_TIME = 50;
 	
 	public static void main( String[] args ) throws IOException, WebApiException, InterruptedException
 	{
@@ -72,6 +74,11 @@ public class Crawler
 		 * idQueue.add(injectedArtist);
 		 * 
 		 */
+		
+		//TODO Set the lines to add to be the number of unique artists in the Queue defined by the readin.
+		//These artists will, by their very nature, all be distinct and unique.
+		//Therefore, you only ever have to update the queue during readin, and then run the queue out.
+		//Think a bit more about this but I think it's a huge step forward if it's correct.
 		
 		
 		if (reader.go == false) {
@@ -129,11 +136,11 @@ public class Crawler
 					System.out.println("Current Queue Size: " + artistQueue.size());
 				}
 				
-				if (i % 50 == 0) {
+				if (i % 25 == 0) {
 					System.out.println("Completed " + i
 										+ " of " + LINES_TO_ADD);
 				}
-				
+                Thread.sleep(SLEEP_DELAY_TIME);
 				i++;
 
 			}
