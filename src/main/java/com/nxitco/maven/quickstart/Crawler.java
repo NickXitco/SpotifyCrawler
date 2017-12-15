@@ -2,10 +2,8 @@ package com.nxitco.maven.quickstart;
 
 import java.io.IOException;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 
 import com.google.common.util.concurrent.FutureCallback;
@@ -25,7 +23,6 @@ import com.wrapper.spotify.models.ClientCredentials;
  */
 public class Crawler 
 {
-	public static final int LINES_TO_ADD = 5000;
 	public static final String clientId = "5b00769425ca43019b6072c9fe842472";
 	public static final String clientSecret = "cc91b1e3ee824e0a8e94d64b5c5201b3";
 	private static final String DEFAULT_ID = "6eUKZXaKkcviH0Ku9w2n3V"; //Ed Sheeran
@@ -33,7 +30,7 @@ public class Crawler
 	public static final String DATABASE_WRITE_NAME = "artistDB.txt";
 	public static final String DATABASE_READ_NAME = "artistDB.txt";
 	
-	public static final int SLEEP_DELAY_TIME = 50;
+	public static final int SLEEP_DELAY_TIME = 60; //TODO Keep dropping this to find the best value that doesn't 429 or 504
 	
 	public static void main( String[] args ) throws IOException, WebApiException, InterruptedException
 	{
@@ -45,24 +42,19 @@ public class Crawler
 		Writer writer = new Writer(DATABASE_WRITE_NAME);
 		Reader reader = new Reader(DATABASE_READ_NAME);
 		
-		
-		Map<String, Artist> artistMap = new HashMap<String, Artist>(); //Map of Artist IDs against Artist Structures
 		Queue<Artist> artistQueue = new LinkedList<Artist>(); //Queue of Artist Structures
 		
 		Artist currentArtist;
-	    String currentID = DEFAULT_ID;		
 		int i = 0;
 		
 		reader.readin();
 		reader.addDiscoveredArtists();
-		artistMap = reader.artistMap;
 		artistQueue = reader.artistQueue;
 		
-		if (artistMap.isEmpty()) {
+		if (artistQueue.isEmpty()) {
 	        getAccessToken(api);
 	        final ArtistRequest request = api.getArtist(DEFAULT_ID).build();
 	        currentArtist = request.get();
-	        artistMap.put(currentID, currentArtist);
 		    artistQueue.add(currentArtist);
 		}
 		
@@ -75,11 +67,7 @@ public class Crawler
 		 * 
 		 */
 		
-		//TODO Set the lines to add to be the number of unique artists in the Queue defined by the readin.
-		//These artists will, by their very nature, all be distinct and unique.
-		//Therefore, you only ever have to update the queue during readin, and then run the queue out.
-		//Think a bit more about this but I think it's a huge step forward if it's correct.
-		
+	    int linesToAdd = artistQueue.size();
 		
 		if (reader.go == false) {
 			System.out.println("Error in readin");
@@ -87,15 +75,11 @@ public class Crawler
 		}
 		
 		System.out.println("Starting crawler...");
-		while (i < LINES_TO_ADD) {
+		while (!artistQueue.isEmpty()) {
 			getAccessToken(api);
-		    while (i < LINES_TO_ADD) {
+		    while (!artistQueue.isEmpty()) {
 				
-		        currentArtist = artistQueue.poll();
-				if (currentArtist == null) {
-					System.out.println("Queue Empty.");
-					return;
-				}				
+		        currentArtist = artistQueue.poll();		
 				
 				writer.writeHeadArtist(currentArtist);
 				
@@ -105,9 +89,6 @@ public class Crawler
 					final List<Artist> artists = request.get();
 					
 				    for (Artist newArtist : artists) {
-				        if (artistMap.put(newArtist.getId(), newArtist) == null) {
-				    		artistQueue.add(newArtist);
-				    	}
 			    		writer.writeChildArtist(newArtist);
 				    }
 				    writer.startNewLine();		
@@ -116,6 +97,11 @@ public class Crawler
 				    
 					writer.errorMessage();
 					writer.flushWriter();
+					if (e.getMessage() == null) {
+					    System.err.println("Unknown Exception: " + e.getMessage());
+	                    i++;
+					    break;
+					}					
 					
 					if (e.getMessage().equals("429")) {
 						System.err.println("Too many requests! " + e.getMessage());
@@ -124,6 +110,12 @@ public class Crawler
 						System.err.println("Resuming...");
 					} else if (e.getMessage().equals("401")) {
 						System.err.println("Access Token Expired! " + e.getMessage());
+					} else if (e.getMessage().equals("504")) {
+					    System.err.println("Gateway Timeout! " + e.getMessage());
+	                } else if (e.getMessage().equals("503")) {
+	                    System.err.println("Service Unavailable! " + e.getMessage());
+	                    System.err.println("Sleeping for 1 minute.");
+	                    Thread.sleep(60000);
 					} else {
 						System.err.println("Unknown Exception: " + e.getMessage());
 					}
@@ -132,17 +124,21 @@ public class Crawler
 					break;
 				}
 				
-				if (i % 500 == 0) {
+				if (i % 1000 == 0) {
 					System.out.println("Current Queue Size: " + artistQueue.size());
 				}
 				
 				if (i % 25 == 0) {
-					System.out.println("Completed " + i
-										+ " of " + LINES_TO_ADD);
+					System.out.print("Completed " + i
+										+ " of " + linesToAdd);
+					System.out.println(" (" + (i * 100 / linesToAdd) + "%)");
 				}
                 Thread.sleep(SLEEP_DELAY_TIME);
 				i++;
-
+				
+                if (i % 10000 == 0) {
+                    break;
+                }
 			}
 		}
 		System.out.println("Finished proccess.");
