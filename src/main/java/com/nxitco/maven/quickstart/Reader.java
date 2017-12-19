@@ -46,8 +46,8 @@ public class Reader {
 			String[] data = this.line.split("\\|");
 			
 			if (data[1].length() != 22) {
-				System.out.println(data[0]);
-        		System.out.println(data[1]);
+				System.err.println(data[0]);
+        		System.err.println(data[1]);
 				this.go = false;
 			}
 			
@@ -86,15 +86,15 @@ public class Reader {
             	try {
         			if (i > 80) {
         				System.err.println("line over 80");
-        				System.out.println(data[0]);
-                		System.out.println(data[1]);
+        				System.err.println(data[0]);
+                		System.err.println(data[1]);
                 		this.go = false;
         			}
             		
             		if (data[i+1].length() != 22) {
         				System.err.println("Id issue");
-        				System.out.println(data[0]);
-                		System.out.println(data[1]);
+        				System.err.println(data[0]);
+                		System.err.println(data[1]);
         				this.go = false;
         			}
         			

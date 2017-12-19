@@ -27,8 +27,8 @@ public class Crawler
 	public static final String clientSecret = "cc91b1e3ee824e0a8e94d64b5c5201b3";
 	private static final String DEFAULT_ID = "6eUKZXaKkcviH0Ku9w2n3V"; //Ed Sheeran
 	
-	public static final String DATABASE_WRITE_NAME = "artistDB.txt";
-	public static final String DATABASE_READ_NAME = "artistDB.txt";
+	public static final String DATABASE_WRITE_NAME = "sortedartistDB.txt";
+	public static final String DATABASE_READ_NAME = "sortedartistDB.txt";
 	
 	public static final int SLEEP_DELAY_TIME = 60; //TODO Keep dropping this to find the best value that doesn't 429 or 504
 	
@@ -39,7 +39,7 @@ public class Crawler
 		  .clientSecret(clientSecret)
 		  .build();
 		
-		Writer writer = new Writer(DATABASE_WRITE_NAME);
+		Writer writer = new Writer(DATABASE_WRITE_NAME, true);
 		Reader reader = new Reader(DATABASE_READ_NAME);
 		
 		Queue<Artist> artistQueue = new LinkedList<Artist>(); //Queue of Artist Structures
@@ -57,15 +57,6 @@ public class Crawler
 	        currentArtist = request.get();
 		    artistQueue.add(currentArtist);
 		}
-		
-		/*
-		 * Inject artists here (but you probably shouldn't
-		 * cause they'd be disconnected which will give you all
-		 * sorts of problems later on).
-		 * 
-		 * idQueue.add(injectedArtist);
-		 * 
-		 */
 		
 	    int linesToAdd = artistQueue.size();
 		
